@@ -10,14 +10,14 @@
 #include <vector>
 #include <string>
 
-#define GLFW_INCLUDE_VULKAN
-#include <glfw3.h>
+#include <vulkan/vulkan.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_vulkan.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm.hpp>
-
-#include "utils.h"
 
 #define VK_MESSAGE_CALLBACK
 
@@ -41,12 +41,16 @@ typedef std::int64_t int64;
 typedef std::uint64_t uint64;
 
 typedef glm::vec2 vec2;
+typedef glm::uvec2 uvec2;
 typedef glm::vec3 vec3;
+typedef glm::uvec3 uvec3;
 typedef glm::vec4 vec4;
+typedef glm::uvec4 uvec4;
 
 typedef glm::mat2 mat2;
 typedef glm::mat3 mat3;
 typedef glm::mat4 mat4;
+
 
 enum MessageSeverity {
 	SP_MESSAGE_VERBOSE,
@@ -57,16 +61,16 @@ enum MessageSeverity {
 };
 
 enum ExitCode {
-	Success = 0,
-	Failure = 1
+	SP_SUCCESS = 0,
+	SP_FAILURE = 1
 };
 
-namespace Console {
-	static void Write(MessageSeverity severity, const char* message);
-	static void FatalExit(const char* message, ExitCode code);
+namespace SpConsole {
+	void Write(MessageSeverity severity, const char* message);
+	void FatalExit(const char* message, ExitCode code);
 
 
-	static void VulkanResult(VkResult result,
+	void VulkanResult(VkResult result,
 	                         MessageSeverity successSeverity,
 	                         MessageSeverity failSeverity,
 	                         const char* successMessage,
@@ -74,14 +78,14 @@ namespace Console {
 	/*!
 	 * Always uses the successSeverity "Info"
 	 */
-	static void VulkanResult(VkResult result,
+	void VulkanResult(VkResult result,
 	                         MessageSeverity failSeverity,
 	                         const char* successMessage,
 	                         const char* failMessage);
 	/*!
 	 * Has no Success message
 	 */
-	static void VulkanResult(VkResult result, MessageSeverity failSeverity, const char* failMessage);
+	void VulkanResult(VkResult result, MessageSeverity failSeverity, const char* failMessage);
 
 	static void VulkanExitCheck(VkResult result,
 	                            MessageSeverity successSeverity,
@@ -91,21 +95,19 @@ namespace Console {
 	/*!
 	* Always uses the successSeverity "Info"
 	*/
-	static void VulkanExitCheck(VkResult result, const char* successMessage, const char* failMessage, ExitCode code);
+	 void VulkanExitCheck(VkResult result, const char* successMessage, const char* failMessage, ExitCode code);
 	/*!
 	 * Has no Success message
 	 */
-	static void VulkanExitCheck(VkResult result, const char* failMessage, ExitCode code);
+	 void VulkanExitCheck(VkResult result, const char* failMessage, ExitCode code);
 
 
-	static VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
+	VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData);
 }
 
-namespace RendererUtils {
-}
 
 #endif //SPARKER_ENGINE_UTILS_H

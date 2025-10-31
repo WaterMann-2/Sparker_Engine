@@ -1,9 +1,10 @@
 //
 // Created by robsc on 10/19/25.
 //
-#include "utils.h"
+#include "Utils.h"
 
-namespace Console {
+namespace SpConsole {
+
     void Write(MessageSeverity severity, const char* message) {
         std::string suffix;
         switch ( severity ) {
@@ -100,11 +101,9 @@ namespace Console {
                              VkDebugUtilsMessageTypeFlagsEXT messageType,
                              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                              void* pUserData) {
-        switch ( messageSeverity ) {
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
 
 
-
-        }
+        return VK_FALSE;
     }
+
 }

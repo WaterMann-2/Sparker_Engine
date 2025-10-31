@@ -3,5 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/Vulkan-SDK-1.4.328.1/source/SPIRV-Headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/sdl3" vcs="Git" />
   </component>
 </project>
