@@ -4,6 +4,9 @@
 #include "Utils.h"
 
 namespace SpConsole {
+    void PlainWrite(const char* message) {
+        std::cout << message << std::endl;
+    }
 
     void Write(MessageSeverity severity, const char* message) {
         std::string suffix;
@@ -101,7 +104,36 @@ namespace SpConsole {
                              VkDebugUtilsMessageTypeFlagsEXT messageType,
                              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                              void* pUserData) {
+        std::string message;
+        switch (messageSeverity) {
 
+
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+                message =  std::string("[Verbose] [Vulkan] ") + pCallbackData->pMessage;
+                PlainWrite(message.c_str());
+                break;
+
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+                message =  std::string("[Info] [Vulkan] ") + pCallbackData->pMessage;
+                PlainWrite(message.c_str());
+                break;
+
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+                message =  std::string("[Warning] [Vulkan] ") + pCallbackData->pMessage;
+                PlainWrite(message.c_str());
+                break;
+
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+                message =  std::string("[Error] [Vulkan] ") + pCallbackData->pMessage;
+                PlainWrite(message.c_str());
+                break;
+
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
+                message =  std::string("[Fatal] [Vulkan] ") + pCallbackData->pMessage;
+                FatalExit(message.c_str(), SP_FAILURE);
+                break;
+
+        }
 
         return VK_FALSE;
     }

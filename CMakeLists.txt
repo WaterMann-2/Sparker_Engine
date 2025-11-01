@@ -13,15 +13,18 @@ include_directories(PUBLIC
         "./external/Vulkan-SDK-1.4.328.1/x86_64/include"
 )
 
-add_subdirectory("./external/sdl3"  EXCLUDE_FROM_ALL)
+#add_subdirectory("./external/sdl3"  EXCLUDE_FROM_ALL)
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 
 find_package(Vulkan REQUIRED)
 
 add_executable(Sparker_Engine main.cpp
-        Renderer/RendererCore.cpp
-        Renderer/RendererCore.h
-        Renderer/Utils/Utils.cpp
-        Renderer/Utils/Utils.h
+        src/Renderer/RendererCore.cpp
+        src/Renderer/RendererCore.h
+        src/Renderer/Utils/Utils.cpp
+        src/Renderer/Utils/Utils.h
+        src/Renderer/QueueFamily.cpp
+        src/Renderer/QueueFamily.h
 )
 
 target_link_libraries(Sparker_Engine Vulkan::Vulkan)

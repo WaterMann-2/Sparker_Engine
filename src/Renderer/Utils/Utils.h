@@ -4,12 +4,17 @@
 
 #ifndef SPARKER_ENGINE_UTILS_H
 #define SPARKER_ENGINE_UTILS_H
+#define DEBUG
 
 #include <cstdint>
 #include <iostream>
 #include <vector>
 #include <string>
+#include <set>
+#include <limits>
 
+#define SDL_EVENT
+#define SDL_MAIN_HANDLED
 #include <vulkan/vulkan.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -19,7 +24,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm.hpp>
 
-#define VK_MESSAGE_CALLBACK
+#define SP_VK_MESSAGE_CALLBACK SpConsole::vkDebugCallback
 
 #ifdef DEBUG
 const bool enableValidationLayers = true;
@@ -66,7 +71,9 @@ enum ExitCode {
 };
 
 namespace SpConsole {
+	void PlainWrite(const char* message);
 	void Write(MessageSeverity severity, const char* message);
+
 	void FatalExit(const char* message, ExitCode code);
 
 
