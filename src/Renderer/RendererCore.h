@@ -27,8 +27,6 @@ namespace SpRenderer {
 #pragma region PrivateStructs
 		struct SdlContext {
 			SDL_Window* window;
-			SDL_GPUDevice* gpuDevice;
-			SDL_Renderer* Sdrenderer;
 			SDL_Event SdEvent;
 			bool quitWindow = false;
 			std::string windowName;

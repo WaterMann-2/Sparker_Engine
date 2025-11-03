@@ -15,8 +15,8 @@ namespace SpRenderer {
     }
 
     void RendererCore::start(const char* ApplicationName) {
-        SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-        SDL_Vulkan_LoadLibrary(nullptr);
+        bool sResult = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+        SpConsole::sdlErrorCheck(sResult);
         mainWindow.windowName = std::string(ApplicationName);
         startWindow();
         createInstance();
@@ -39,16 +39,9 @@ namespace SpRenderer {
         mainWindow.extent.width = 800;
         mainWindow.extent.height = 800;
 
-
-
         mainWindow.window = SDL_CreateWindow(mainWindow.windowName.c_str(),mainWindow.extent.width,mainWindow.extent.height,
             SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE
             );
-
-        mainWindow.gpuDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, "vulkan");
-
-
-        SDL_ClaimWindowForGPUDevice(mainWindow.gpuDevice, mainWindow.window);
     }
 
     void RendererCore::endWindowFrame() {
@@ -56,7 +49,6 @@ namespace SpRenderer {
     }
 
     void RendererCore::terminateWindow() {
-        SDL_DestroyGPUDevice(mainWindow.gpuDevice);
         SDL_DestroyWindow(mainWindow.window);
         SDL_Quit();
     }
@@ -81,18 +73,17 @@ namespace SpRenderer {
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 
 
+        std::vector<const char*> extensions = RequiredExtensions;
+
+
         //Getting extensions
-        uint32 instanceExtensionCount = 0;
-        const char* const* instanceExtensions = SDL_Vulkan_GetInstanceExtensions(&instanceExtensionCount);
-
-        if (instanceExtensions == nullptr) {
-            SpConsole::FatalExit("Failed to get SDL Vulkan extensions!", SP_FAILURE);
+        {
+            uint32 instanceExtensionCount = 0;
+            const char* const* instanceExtensions = SDL_Vulkan_GetInstanceExtensions(&instanceExtensionCount);
+            for (size_t i = 0; i < instanceExtensionCount; i++) {
+                extensions.push_back(instanceExtensions[i]);
+            }
         }
-
-        uint32 extensionCount = instanceExtensionCount + 1;
-        const char** extensions = static_cast<const char**>(SDL_malloc(instanceExtensionCount * sizeof(const char*)));
-        extensions[0] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
-        SDL_memcpy(&extensions[1], instanceExtensions, extensionCount * sizeof(const char*));
         //end Getting Extensions
 
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = populateDebugMessenger();
@@ -100,10 +91,10 @@ namespace SpRenderer {
         VkInstanceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
-        createInfo.enabledLayerCount = static_cast<uint32>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
-        createInfo.enabledExtensionCount = extensionCount;
-        createInfo.ppEnabledExtensionNames = extensions;
+        createInfo.enabledLayerCount = static_cast<uint32>(ValidationLayers.size());
+        createInfo.ppEnabledLayerNames = ValidationLayers.data();
+        createInfo.enabledExtensionCount = static_cast<uint32>(extensions.size());
+        createInfo.ppEnabledExtensionNames = extensions.data();
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 
         uint32 validationLayersCount = 0;
@@ -118,8 +109,6 @@ namespace SpRenderer {
         // ReSharper disable once CppLocalVariableMayBeConst
         VkResult result = vkCreateInstance(&createInfo, nullptr, &vulkanContext.instance);
         SpConsole::VulkanExitCheck(result, "Created Vulkan instance", "Failed to create instance!", SP_FAILURE);
-
-        SDL_free(extensions);
     }
 
 
@@ -204,7 +193,7 @@ namespace SpRenderer {
         std::vector<VkExtensionProperties> extensions(extensionCount);
         vkEnumerateDeviceExtensionProperties(deviceInfo.device, nullptr, &extensionCount, extensions.data());
 
-        std::set<std::string> requestedExtensions(deviceExtensions.begin(), deviceExtensions.end());
+        std::set<std::string> requestedExtensions(DeviceExtensions.begin(), DeviceExtensions.end());
 
         for (const VkExtensionProperties& extension : extensions) {
             requestedExtensions.erase(extension.extensionName);

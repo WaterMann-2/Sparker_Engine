@@ -138,4 +138,11 @@ namespace SpConsole {
         return VK_FALSE;
     }
 
+    void sdlErrorCheck(bool result) {
+        if (!result) {
+            const char* sdlError = SDL_GetError();
+            std::string message = std::string("[SDL ERROR] ") + sdlError;
+            PlainWrite(message.c_str());
+        }
+    }
 }
