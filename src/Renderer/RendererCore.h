@@ -44,11 +44,26 @@ namespace SpRenderer {
 			VkPhysicalDeviceMemoryProperties memoryProperties;
 		};
 
+		struct LogicalDevice {
+			VkDevice device;
+
+			VkQueue graphicsQueue;
+			VkQueue presentQueue;
+			VkQueue transferQueue;
+		};
+
+		struct Swapchain {
+			VkSwapchainKHR swapchain;
+			SwapchainSupportDetails* swapchainDetails;
+			VkSurfaceFormatKHR surfaceFormat;
+			VkPresentModeKHR presentMode;
+
+			std::vector<VkImage> images = std::vector<VkImage>(0);
+		};
+
 		struct VulkanContext {
 			VkInstance instance;
 			VkDebugUtilsMessengerEXT debugMessenger;
-			PhysicalDeviceInfo physicalDeviceInfo;
-
 		};
 
 #pragma endregion PrivateStructs
@@ -57,6 +72,9 @@ namespace SpRenderer {
 		SdlContext mainWindow;
 		VulkanContext vulkanContext;
 
+		PhysicalDeviceInfo mPhysicalDeviceInfo;
+		LogicalDevice mLogicalDevice;
+		Swapchain mSwapchain;
 	private:
 		void startWindow();
 		void endWindowFrame();
@@ -71,10 +89,15 @@ namespace SpRenderer {
 		void getPhysicalDevice();
 		int isSuitableDevice(PhysicalDeviceInfo& deviceInfo);
 		void querySwapchainSupport(PhysicalDeviceInfo& deviceInfo);
+
 		void createLogicalDevice();
+		void createSwapchain();
+
 
 		void inline terminateSurface();
 		void inline terminateInstance();
+		void inline terminateLogicalDevice();
+		void destroySwapchain();
 
 	private:
 

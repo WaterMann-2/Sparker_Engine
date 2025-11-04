@@ -6,8 +6,6 @@
 
 #include <format>
 
-#include "SDL3/SDL_main_impl.h"
-
 
 namespace SpRenderer {
     bool RendererCore::shouldClose() const {
@@ -135,6 +133,7 @@ namespace SpRenderer {
     void RendererCore::createSurface() {
         bool result = SDL_Vulkan_CreateSurface(mainWindow.window, vulkanContext.instance, nullptr, &mainWindow.surface);
         if (!result) {
+            SpConsole::sdlErrorCheck(false);
             SpConsole::FatalExit("Failed to create Vulkan surface!", SP_FAILURE);
         }
 
@@ -177,7 +176,7 @@ namespace SpRenderer {
             SpConsole::FatalExit("Failed to find suitable GPU!", SP_FAILURE);
         }
 
-        vulkanContext.physicalDeviceInfo = *highestDevice;
+        mPhysicalDeviceInfo = *highestDevice;
     }
 
     int RendererCore::isSuitableDevice(PhysicalDeviceInfo& deviceInfo) {
@@ -238,11 +237,169 @@ namespace SpRenderer {
         }
     }
 
+    void RendererCore::createLogicalDevice() {
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
+
+        std::set<uint32> uniqueQueueFamilies;
+
+        bool transferComplete = mPhysicalDeviceInfo.indices.transferComplete();
+        if (transferComplete) {
+            uniqueQueueFamilies = {
+                             mPhysicalDeviceInfo.indices.graphicsFamily.value(),
+                             mPhysicalDeviceInfo.indices.presentFamily.value(),
+                             mPhysicalDeviceInfo.indices.transferFamily.value()
+            };
+        }else {
+            uniqueQueueFamilies = {
+                         mPhysicalDeviceInfo.indices.graphicsFamily.value(),
+                         mPhysicalDeviceInfo.indices.presentFamily.value()
+            };
+        }
+
+        float queuePriority = 1.0f;
+        for (uint32 queueFamily : uniqueQueueFamilies) {
+            VkDeviceQueueCreateInfo queueCreateInfo{};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex = queueFamily;
+            queueCreateInfo.queueCount = 1;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
+
+        VkDeviceCreateInfo deviceCreateInfo{};
+        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32>(queueCreateInfos.size());
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+        deviceCreateInfo.pEnabledFeatures = nullptr;
+
+        deviceCreateInfo.enabledExtensionCount = static_cast<uint32>(DeviceExtensions.size());
+        deviceCreateInfo.ppEnabledExtensionNames = DeviceExtensions.data();
+
+        deviceCreateInfo.enabledLayerCount = static_cast<uint32>(ValidationLayers.size());
+        deviceCreateInfo.ppEnabledLayerNames = ValidationLayers.data();
+
+        VkResult result = vkCreateDevice(mPhysicalDeviceInfo.device, &deviceCreateInfo, nullptr, &mLogicalDevice.device);
+
+        SpConsole::VulkanExitCheck(result, SP_MESSAGE_INFO, "Created logical device", "Failed to create logical device", SP_FAILURE);
+
+        if (transferComplete) {
+            vkGetDeviceQueue(mLogicalDevice.device, mPhysicalDeviceInfo.indices.graphicsFamily.value(), 0, &mLogicalDevice.graphicsQueue);
+            vkGetDeviceQueue(mLogicalDevice.device, mPhysicalDeviceInfo.indices.presentFamily.value(), 0, &mLogicalDevice.presentQueue);
+            vkGetDeviceQueue(mLogicalDevice.device, mPhysicalDeviceInfo.indices.transferFamily.value(), 0, &mLogicalDevice.transferQueue);
+        }else {
+            vkGetDeviceQueue(mLogicalDevice.device, mPhysicalDeviceInfo.indices.graphicsFamily.value(), 0, &mLogicalDevice.graphicsQueue);
+            vkGetDeviceQueue(mLogicalDevice.device, mPhysicalDeviceInfo.indices.presentFamily.value(), 0, &mLogicalDevice.presentQueue);
+            mLogicalDevice.transferQueue = nullptr;
+        }
+    }
+
+    void RendererCore::createSwapchain() {
+        mSwapchain.swapchainDetails = &mPhysicalDeviceInfo.swapchainDetails;
+
+        for (const VkSurfaceFormatKHR& swapchainFormat : mPhysicalDeviceInfo.swapchainDetails.formats) {
+            if (swapchainFormat.format == VK_FORMAT_B8G8R8A8_UNORM && swapchainFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                mSwapchain.surfaceFormat = swapchainFormat;
+                break;
+            }
+        }
+
+        for (const VkPresentModeKHR& presentMode : mPhysicalDeviceInfo.swapchainDetails.presentModes) {
+            if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+                mSwapchain.presentMode = presentMode;
+                break;
+            }
+        }
+
+        if (mSwapchain.presentMode != VK_PRESENT_MODE_MAILBOX_KHR) {
+            mSwapchain.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+        }
+
+        //Check if Extent2D is valid
+        if (mSwapchain.swapchainDetails->capabilities.currentExtent.width == std::numeric_limits<uint32_t>::max()) {
+            int width, height;
+            SDL_GetWindowSizeInPixels(mainWindow.window, &width, &height);
+
+            VkExtent2D swapchainExtent = {
+                static_cast<uint32_t>(width),
+                static_cast<uint32_t>(height)
+            };
+
+            swapchainExtent.width = std::clamp(swapchainExtent.width,
+                                               mSwapchain.swapchainDetails->capabilities.minImageExtent.width,
+                                               mSwapchain.swapchainDetails->capabilities.maxImageExtent.width);
+            swapchainExtent.height = std::clamp(swapchainExtent.height,
+                                                mSwapchain.swapchainDetails->capabilities.minImageExtent.height,
+                                                mSwapchain.swapchainDetails->capabilities.maxImageExtent.height);
+
+            mainWindow.extent.width = swapchainExtent.width;
+        }
+
+        uint32 imageCount = mSwapchain.swapchainDetails->capabilities.minImageCount + 1;
+
+        if (mSwapchain.swapchainDetails->capabilities.maxImageCount > 0 && imageCount > mSwapchain.swapchainDetails->capabilities.maxImageCount) {
+            imageCount = mSwapchain.swapchainDetails->capabilities.maxImageCount;
+        }
+
+        std::vector<uint32> queueFamilyIndices;
+        bool transferComplete = mPhysicalDeviceInfo.indices.transferComplete();
+        if (transferComplete) {
+            queueFamilyIndices = {
+                mPhysicalDeviceInfo.indices.graphicsFamily.value(),
+                mPhysicalDeviceInfo.indices.presentFamily.value(),
+                mPhysicalDeviceInfo.indices.transferFamily.value()
+            };
+        }else {
+            queueFamilyIndices = {
+                mPhysicalDeviceInfo.indices.graphicsFamily.value(),
+                mPhysicalDeviceInfo.indices.presentFamily.value()
+            };
+        }
+
+        VkSwapchainCreateInfoKHR swapchainCreateInfo{};
+        swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        swapchainCreateInfo.surface = mainWindow.surface;
+        swapchainCreateInfo.minImageCount = imageCount;
+        swapchainCreateInfo.imageFormat = mSwapchain.surfaceFormat.format;
+        swapchainCreateInfo.imageColorSpace = mSwapchain.surfaceFormat.colorSpace;
+        swapchainCreateInfo.imageExtent = mainWindow.extent;
+        swapchainCreateInfo.imageArrayLayers = 1;
+        swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+        if (mPhysicalDeviceInfo.indices.graphicsFamily.value() != mPhysicalDeviceInfo.indices.presentFamily.value()) {
+            swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+            swapchainCreateInfo.queueFamilyIndexCount = static_cast<uint32>(queueFamilyIndices.size());
+            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices.data();
+        }else {
+            swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            swapchainCreateInfo.queueFamilyIndexCount = 0;
+            swapchainCreateInfo.pQueueFamilyIndices = nullptr;
+        }
+
+        swapchainCreateInfo.preTransform = mSwapchain.swapchainDetails->capabilities.currentTransform;
+        swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        swapchainCreateInfo.presentMode = mSwapchain.presentMode;
+        swapchainCreateInfo.clipped = VK_TRUE;
+        swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+        VkResult result = vkCreateSwapchainKHR(mLogicalDevice.device, &swapchainCreateInfo, nullptr, &mSwapchain.swapchain);
+
+        SpConsole::VulkanExitCheck(result, SP_MESSAGE_INFO, "Created swapchain", "Failed to create swapchain!", SP_FAILURE);
+
+        vkGetSwapchainImagesKHR(mLogicalDevice.device, mSwapchain.swapchain, &imageCount, nullptr);
+        mSwapchain.images.resize(imageCount);
+        vkGetSwapchainImagesKHR(mLogicalDevice.device, mSwapchain.swapchain, &imageCount, mSwapchain.images.data());
+    }
+
     void RendererCore::terminateSurface() {
         SDL_Vulkan_DestroySurface(vulkanContext.instance, mainWindow.surface, nullptr);
     }
 
     void RendererCore::terminateInstance() {
         vkDestroyInstance(vulkanContext.instance, nullptr);
+    }
+
+    void RendererCore::terminateLogicalDevice() {
+        vkDestroyDevice(mLogicalDevice.device, nullptr);
     }
 } // SpRenderer

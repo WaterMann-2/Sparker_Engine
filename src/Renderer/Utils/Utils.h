@@ -35,7 +35,9 @@ const bool enableValidationLayers = false;
 const std::vector<const char*> ValidationLayers = {"VK_LAYER_KHRONOS_validation"};
 
 const std::vector<const char*> DeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-const std::vector<const char*> RequiredExtensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_DEBUG_REPORT_EXTENSION_NAME};
+const std::vector<const char*> RequiredExtensions = {
+	VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_DEBUG_REPORT_EXTENSION_NAME
+};
 
 typedef std::int8_t int8;
 typedef std::uint8_t uint8;
@@ -79,35 +81,35 @@ namespace SpConsole {
 
 
 	void VulkanResult(VkResult result,
-	                         MessageSeverity successSeverity,
-	                         MessageSeverity failSeverity,
-	                         const char* successMessage,
-	                         const char* failMessage);
+	                  MessageSeverity successSeverity,
+	                  MessageSeverity failSeverity,
+	                  const char* successMessage,
+	                  const char* failMessage);
 	/*!
 	 * Always uses the successSeverity "Info"
 	 */
 	void VulkanResult(VkResult result,
-	                         MessageSeverity failSeverity,
-	                         const char* successMessage,
-	                         const char* failMessage);
+	                  MessageSeverity failSeverity,
+	                  const char* successMessage,
+	                  const char* failMessage);
 	/*!
 	 * Has no Success message
 	 */
 	void VulkanResult(VkResult result, MessageSeverity failSeverity, const char* failMessage);
 
-	static void VulkanExitCheck(VkResult result,
-	                            MessageSeverity successSeverity,
-	                            const char* successMessage,
-	                            const char* failMessage,
-	                            ExitCode code);
+	void VulkanExitCheck(VkResult result,
+	                     MessageSeverity successSeverity,
+	                     const char* successMessage,
+	                     const char* failMessage,
+	                     ExitCode code);
 	/*!
 	* Always uses the successSeverity "Info"
 	*/
-	 void VulkanExitCheck(VkResult result, const char* successMessage, const char* failMessage, ExitCode code);
+	void VulkanExitCheck(VkResult result, const char* successMessage, const char* failMessage, ExitCode code);
 	/*!
 	 * Has no Success message
 	 */
-	 void VulkanExitCheck(VkResult result, const char* failMessage, ExitCode code);
+	void VulkanExitCheck(VkResult result, const char* failMessage, ExitCode code);
 
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(

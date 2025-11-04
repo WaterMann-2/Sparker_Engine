@@ -10,9 +10,9 @@
 
 
 struct QueueFamilyIndices {
-	std::optional<int> graphicsFamily;
-	std::optional<int> presentFamily;
-	std::optional<int> transferFamily;
+	std::optional<uint32> graphicsFamily;
+	std::optional<uint32> presentFamily;
+	std::optional<uint32> transferFamily;
 
 	void findQueueIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 
