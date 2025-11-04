@@ -59,6 +59,13 @@ namespace SpRenderer {
 			VkPresentModeKHR presentMode;
 
 			std::vector<VkImage> images = std::vector<VkImage>(0);
+			std::vector<VkImageView> imageViews = std::vector<VkImageView>(0);
+		};
+
+		struct Renderpass {
+			VkRenderPass renderPass;
+
+
 		};
 
 		struct VulkanContext {
@@ -75,6 +82,8 @@ namespace SpRenderer {
 		PhysicalDeviceInfo mPhysicalDeviceInfo;
 		LogicalDevice mLogicalDevice;
 		Swapchain mSwapchain;
+		Renderpass mRenderpass;
+
 	private:
 		void startWindow();
 		void endWindowFrame();
@@ -92,12 +101,16 @@ namespace SpRenderer {
 
 		void createLogicalDevice();
 		void createSwapchain();
+		void createImageViews();
+		void createRenderpass();
 
 
-		void inline terminateSurface();
-		void inline terminateInstance();
-		void inline terminateLogicalDevice();
-		void destroySwapchain();
+		void inline destroySurface();
+		void inline destroyInstance();
+		void inline destroyLogicalDevice();
+		void inline destroySwapchain();
+		void inline destroyImageviews();
+		void inline destroyRenderpass();
 
 	private:
 
