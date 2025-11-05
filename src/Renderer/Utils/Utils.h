@@ -121,5 +121,7 @@ namespace SpConsole {
 	void sdlErrorCheck(bool result);
 }
 
+namespace RendUtils {
+}
 
 #endif //SPARKER_ENGINE_UTILS_H

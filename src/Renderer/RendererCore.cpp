@@ -453,7 +453,7 @@ namespace SpRenderer {
         //-------------------//
 
         VkAttachmentDescription depthAttachment{};
-        //depthAttachment.format = mSwapchain.surfaceFormat.format;
+        depthAttachment.format = findDepthFormat();
         depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -516,5 +516,26 @@ namespace SpRenderer {
 
     void RendererCore::destroyRenderpass() {
         vkDestroyRenderPass(mLogicalDevice.device, mRenderpass.renderPass, nullptr);
+    }
+
+    VkFormat RendererCore::findSupportedFormat(const std::vector<VkFormat>& candidates,
+        VkImageTiling tiling,
+        VkFormatFeatureFlags features) {
+        for (VkFormat format : candidates) {
+            VkFormatProperties props;
+            vkGetPhysicalDeviceFormatProperties(mPhysicalDeviceInfo.device, format, &props);
+            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+                return format;
+            } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+                return format;
+            }
+        }
+
+        SpConsole::FatalExit("Failed to find supported format!", SP_FAILURE);
+    }
+
+    VkFormat RendererCore::findDepthFormat() {
+        return findSupportedFormat( { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+        VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
     }
 } // SpRenderer

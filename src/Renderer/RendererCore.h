@@ -27,7 +27,6 @@ namespace SpRenderer {
 #pragma region PrivateStructs
 		struct SdlContext {
 			SDL_Window* window;
-			SDL_Event SdEvent;
 			bool quitWindow = false;
 			std::string windowName;
 			VkExtent2D extent;
@@ -113,7 +112,8 @@ namespace SpRenderer {
 		void inline destroyRenderpass();
 
 	private:
-
+		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+		VkFormat findDepthFormat();
 	};
 } // SpRenderer
 
