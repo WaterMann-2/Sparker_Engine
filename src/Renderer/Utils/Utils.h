@@ -124,4 +124,16 @@ namespace SpConsole {
 namespace RendUtils {
 }
 
+namespace Utils {
+	class FileUtils {
+		public:
+
+		std::vector<char> readBinaryFile(std::string filePath);
+		void writeBinaryFile(std::string filePath);
+
+	private:
+
+	};
+}
+
 #endif //SPARKER_ENGINE_UTILS_H

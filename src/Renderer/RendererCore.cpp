@@ -492,30 +492,41 @@ namespace SpRenderer {
 
     }
 
+    void RendererCore::createGraphicsPipeline() {
+
+    }
+
     void RendererCore::destroySurface() {
         SDL_Vulkan_DestroySurface(vulkanContext.instance, mainWindow.surface, nullptr);
+        SpConsole::Write(SP_MESSAGE_INFO, "Destroyed SDL surface");
     }
 
     void RendererCore::destroyInstance() {
         vkDestroyInstance(vulkanContext.instance, nullptr);
+        SpConsole::Write(SP_MESSAGE_INFO, "Destroyed Vulkan instance");
     }
 
     void RendererCore::destroyLogicalDevice() {
         vkDestroyDevice(mLogicalDevice.device, nullptr);
+        SpConsole::Write(SP_MESSAGE_INFO, "Destroyed Logical device");
     }
 
     void RendererCore::destroySwapchain() {
         vkDestroySwapchainKHR(mLogicalDevice.device, mSwapchain.swapchain, nullptr);
+        SpConsole::Write(SP_MESSAGE_INFO, "Destroyed swapchain");
     }
 
     void RendererCore::destroyImageviews() {
         for (size_t i = 0; i < mSwapchain.imageViews.size(); i++) {
             vkDestroyImageView(mLogicalDevice.device, mSwapchain.imageViews[i], nullptr);
+            SpConsole::Write(SP_MESSAGE_VERBOSE, ("Destroyed image view: " + std::to_string(i)).c_str());
         }
+        SpConsole::Write(SP_MESSAGE_INFO, "Destroyed image views");
     }
 
     void RendererCore::destroyRenderpass() {
         vkDestroyRenderPass(mLogicalDevice.device, mRenderpass.renderPass, nullptr);
+        SpConsole::Write(SP_MESSAGE_INFO, "Destroyed render pass");
     }
 
     VkFormat RendererCore::findSupportedFormat(const std::vector<VkFormat>& candidates,

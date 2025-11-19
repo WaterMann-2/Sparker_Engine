@@ -102,6 +102,21 @@ namespace SpRenderer {
 		void createSwapchain();
 		void createImageViews();
 		void createRenderpass();
+		void createDescriptorSetLayout();
+		void createGraphicsPipeline();
+		void createDepthResources();
+		void createFramebuffers();
+		void createCommandPool();
+		void createTextureImage();
+
+		void createUniformBuffers();
+		void createDescriptorPool();
+		void createDescriptorSets();
+
+		void createCommandBuffers();
+		void createSyncObjects();
+
+
 
 
 		void inline destroySurface();
