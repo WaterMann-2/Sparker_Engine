@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "src/Renderer/RendererCore.h"
+#include <SpRenderer/RendererCore.h>
 
 int main(int argc, char* args[]) {
     SpRenderer::RendererCore renderer;

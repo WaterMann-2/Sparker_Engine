@@ -7,7 +7,7 @@
 
 
 #include "QueueFamily.h"
-#include "Utils/Utils.h"
+#include "Utils.h"
 
 
 const uvec3 ClearColor = uvec3(25, 40, 60);

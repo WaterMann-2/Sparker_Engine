@@ -5,7 +5,7 @@
 #ifndef SPARKER_ENGINE_SHADER_H
 #define SPARKER_ENGINE_SHADER_H
 
-#include "../Utils/Utils.h"
+#include "Utils.h"
 
 class Shader {
 public:
