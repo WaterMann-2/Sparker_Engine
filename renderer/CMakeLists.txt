@@ -5,8 +5,27 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_subdirectory(src)
 
-add_library(SparkerRenderer STATIC
-        include/SpRenderer/Utils.h)
+file(
+        COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources"
+        DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/resources"
+)
+
+file(
+        MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data"
+)
+
+set(OUTPUT_DIR "\"${CMAKE_CURRENT_BINARY_DIR}\"")
+set(RENDERER_RESOURCE_DIR "\"${CMAKE_CURRENT_BINARY_DIR}/resources\"")
+set(RENDERER_DATA_DIR "\"${CMAKE_CURRENT_BINARY_DIR}/data\"")
+
+configure_file(
+        "SpRendererConfig.h.in"
+        "SpRendererConfig.h"
+        @ONLY
+)
+
+
+add_library(SparkerRenderer STATIC)
 
 target_sources(SparkerRenderer
     PRIVATE
@@ -30,6 +49,7 @@ target_include_directories(SparkerRenderer PRIVATE
         "./external/sdl3"
         "./external/Vulkan-SDK-1.4.328.1/x86_64/include"
         "./include/SpRenderer"
+        "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)

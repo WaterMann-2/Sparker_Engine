@@ -24,6 +24,7 @@ namespace SpRenderer {
         createSwapchain();
         createImageViews();
         createRenderpass();
+        createGraphicsPipeline();
     }
 
     void RendererCore::stop() {
@@ -184,6 +185,7 @@ namespace SpRenderer {
             SpConsole::FatalExit("Failed to find suitable GPU!", SP_FAILURE);
         }
 
+        vkGetPhysicalDeviceMemoryProperties(highestDevice->device, &highestDevice->memoryProperties);
         mPhysicalDeviceInfo = *highestDevice;
     }
 
@@ -452,8 +454,10 @@ namespace SpRenderer {
 
         //-------------------//
 
+        mDepthResources.format = findDepthFormat();
+
         VkAttachmentDescription depthAttachment{};
-        depthAttachment.format = findDepthFormat();
+        depthAttachment.format = mDepthResources.format;
         depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -492,8 +496,29 @@ namespace SpRenderer {
 
     }
 
-    void RendererCore::createGraphicsPipeline() {
+    void RendererCore::createDescriptorSetLayout() {
+    }
 
+    void RendererCore::createGraphicsPipeline() {
+        m2DMainShader.createShader(
+            std::string(RENDERER_RESOURCE_DIR "/shader/Vertex2D Base.vert"),
+            std::string(RENDERER_RESOURCE_DIR "/shader/Vertex2D Base.frag"),
+            mLogicalDevice.device);
+    }
+
+    void RendererCore::createDepthResources() {
+        createImage(
+            mDepthResources.image,
+            mDepthResources.imageMemory,
+            mainWindow.extent.width,
+            mainWindow.extent.height,
+            mDepthResources.format,
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            );
+
+        createImageView(mDepthResources.imageView, mDepthResources.image, mDepthResources.format, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
     void RendererCore::destroySurface() {
@@ -548,5 +573,74 @@ namespace SpRenderer {
     VkFormat RendererCore::findDepthFormat() {
         return findSupportedFormat( { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
         VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    }
+
+    uint32 RendererCore::findMemoryType(uint32 typeFilter, VkMemoryPropertyFlags properties) {
+        for (size_t i = 0; i < mPhysicalDeviceInfo.memoryProperties.memoryTypeCount; i++) {
+            if (typeFilter & (1 << i) && (mPhysicalDeviceInfo.memoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+                return i;
+            }
+        }
+    }
+
+    void RendererCore::createImage(VkImage& image,
+                                   VkDeviceMemory& imageMemory,
+                                   uint32 width,
+                                   uint32 height,
+                                   VkFormat format,
+                                   VkImageTiling tiling,
+                                   VkImageUsageFlags usage,
+                                   VkMemoryPropertyFlags
+                                   properties) {
+
+        VkImageCreateInfo imageCreateInfo = {};
+        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageCreateInfo.extent.width = width;
+        imageCreateInfo.extent.height = height;
+        imageCreateInfo.extent.depth = 1;
+        imageCreateInfo.mipLevels = 1;
+        imageCreateInfo.arrayLayers = 1;
+        imageCreateInfo.format = format;
+        imageCreateInfo.tiling = tiling;
+        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageCreateInfo.usage = usage;
+        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+
+
+        VkResult result = vkCreateImage(mLogicalDevice.device, &imageCreateInfo, nullptr, &image);
+        SpConsole::VulkanResult(result, SP_MESSAGE_ERROR, SP_MESSAGE_INFO, "Failed to create image!", "Created image");
+
+        VkMemoryRequirements memRequirements;
+        vkGetImageMemoryRequirements(mLogicalDevice.device, image, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+
+        result = vkAllocateMemory(mLogicalDevice.device, &allocInfo, nullptr, &imageMemory);
+        SpConsole::VulkanExitCheck(result, "Failed to allocate memory!", "Allocated memory", SP_FAILURE);
+        vkBindImageMemory(mLogicalDevice.device, image, imageMemory, 0);
+    }
+
+    void RendererCore::createImageView(VkImageView& imageView,
+                                       VkImage image,
+                                       VkFormat format,
+                                       VkImageAspectFlags aspectFlags) {
+
+        VkImageViewCreateInfo viewCreateInfo = {};
+        viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewCreateInfo.image = image;
+        viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewCreateInfo.format = format;
+        viewCreateInfo.subresourceRange. aspectMask = aspectFlags;
+        viewCreateInfo.subresourceRange.baseMipLevel = 0;
+        viewCreateInfo.subresourceRange.levelCount = 1;
+        viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        viewCreateInfo.subresourceRange.layerCount = 1;
+
+        VkResult result = vkCreateImageView(mLogicalDevice.device, &viewCreateInfo, nullptr, &imageView);
+        SpConsole::VulkanExitCheck(result, "Failed to create image view!", "Created image view", SP_FAILURE);
     }
 } // SpRenderer

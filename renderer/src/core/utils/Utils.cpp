@@ -3,6 +3,7 @@
 //
 #include "Utils.h"
 
+
 namespace SpConsole {
     void PlainWrite(const char* message) {
         std::cout << message << std::endl;
@@ -147,3 +148,7 @@ namespace SpConsole {
     }
 }
 
+std::vector<char> Utils::FileUtils::readBinaryFile(std::filesystem::path filePath) {
+    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+
+}

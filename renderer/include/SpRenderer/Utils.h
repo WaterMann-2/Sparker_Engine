@@ -8,10 +8,14 @@
 
 #include <cstdint>
 #include <iostream>
+#include <ostream>
+#include <fstream>
+#include <filesystem>
 #include <vector>
 #include <string>
 #include <set>
 #include <limits>
+#include <chrono>
 
 #define SDL_EVENT
 #define SDL_MAIN_HANDLED
@@ -23,6 +27,8 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm.hpp>
+
+#include <SpRendererConfig.h>
 
 #define SP_VK_MESSAGE_CALLBACK SpConsole::vkDebugCallback
 
@@ -128,7 +134,7 @@ namespace Utils {
 	class FileUtils {
 		public:
 
-		std::vector<char> readBinaryFile(std::string filePath);
+		static std::vector<char> readBinaryFile(std::filesystem::path filePath);
 		void writeBinaryFile(std::string filePath);
 
 	private:

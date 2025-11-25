@@ -8,6 +8,7 @@
 
 #include "QueueFamily.h"
 #include "Utils.h"
+#include "Shader.h"
 
 
 const uvec3 ClearColor = uvec3(25, 40, 60);
@@ -72,6 +73,13 @@ namespace SpRenderer {
 			VkDebugUtilsMessengerEXT debugMessenger;
 		};
 
+		struct DepthResources {
+			VkFormat format;
+			VkImage image;
+			VkDeviceMemory imageMemory;
+			VkImageView imageView;
+		};
+
 #pragma endregion PrivateStructs
 
 	private:
@@ -82,6 +90,10 @@ namespace SpRenderer {
 		LogicalDevice mLogicalDevice;
 		Swapchain mSwapchain;
 		Renderpass mRenderpass;
+
+		DepthResources mDepthResources;
+
+		Shader m2DMainShader;
 
 	private:
 		void startWindow();
@@ -129,6 +141,20 @@ namespace SpRenderer {
 	private:
 		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 		VkFormat findDepthFormat();
+
+		uint32 findMemoryType(uint32 typeFilter, VkMemoryPropertyFlags properties);
+
+		void createImage(VkImage& image,
+		                 VkDeviceMemory& imageMemory,
+		                 uint32 width,
+		                 uint32 height,
+		                 VkFormat format,
+		                 VkImageTiling tiling,
+		                 VkImageUsageFlags usage,
+		                 VkMemoryPropertyFlags
+		                 properties);
+
+		void createImageView(VkImageView& imageView, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	};
 } // SpRenderer
 
