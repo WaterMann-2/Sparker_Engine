@@ -6,6 +6,18 @@
 
 namespace fs = std::filesystem;
 
+std::string Shader::shaderExtension(ShaderType type) {
+	switch (type) {
+		case ShaderType::ShaderVertex:
+			return ".vert";
+			break;
+
+		case ShaderType::ShaderFragment:
+			return ".frag";
+			break;
+	}
+}
+
 void Shader::createShader(const std::string vertexShaderFilePath,
                           const std::string fragmentShaderFilePath,
                           VkDevice device) {
@@ -23,11 +35,11 @@ void Shader::createShader(const std::string vertexShaderFilePath,
 	std::string vertexName = vertexShaderPath.stem().string();
 	std::string fragmentName = fragmentShaderPath.stem().string();
 
-	compiledCheck(vertexName, vertexShaderPath.extension().string());
-	compiledCheck(fragmentName, fragmentShaderPath.extension().string());
+	compiledCheck(vertexName, ShaderVertex);
+	compiledCheck(fragmentName, ShaderFragment);
 
-	recompileDateCheck(vertexName, vertexShaderPath.extension().string());
-	recompileDateCheck(fragmentName, fragmentShaderPath.extension().string());
+	recompileDateCheck(vertexName, ShaderVertex);
+	recompileDateCheck(fragmentName, ShaderFragment);
 
 	if (mCompileFlags == 0) {
 		return;
@@ -43,33 +55,57 @@ void Shader::createShader(const std::string vertexShaderFilePath,
 
 
 void Shader::compileShader(std::filesystem::path filePath) {
+	//shaderc::Compiler compiler;
+
+
 
 }
 
-void Shader::compiledCheck(std::string fileName, std::string fileExtension) {
+void Shader::compiledCheck(std::string fileName, ShaderType type) {
 	std::string dataFolder = RENDERER_DATA_DIR "/shaders/";
 	fs::path shaderPath = dataFolder;
 
 	if (!fs::exists(shaderPath)) {
-		SpConsole::Write(SP_MESSAGE_ERROR, ("Path to " + shaderPath.string() + " does not exist!").c_str());
-		return;
+		SpConsole::Write(SP_MESSAGE_WARNING, ("Creating Directory " + shaderPath.string()).c_str());
+		fs::create_directory(shaderPath);
 	}
 	for (const auto& entry : fs::directory_iterator(shaderPath)) {
-		if (entry.path().stem().string() == fileName) {
+		if (fileName.compare(entry.path().filename().string())) {
+			SpConsole::Write(SP_MESSAGE_INFO, (fileName + " has been copmpiled").c_str());
 			return;
 		}
 	}
 
-	if (fileExtension.compare(".vert")) {
-		mCompileFlags = mCompileFlags | CompileVertex;
-	}else if (fileExtension.compare(".frag")) {
-		mCompileFlags = mCompileFlags | CompileFragment;
+	SpConsole::Write(SP_MESSAGE_VERBOSE, ("Did not find compiled shader for " + fileName).c_str());
+
+	switch (type) {
+		case ShaderType::ShaderVertex:
+			mCompileFlags = mCompileFlags | CompileVertex;
+			break;
+		case ShaderType::ShaderFragment:
+			mCompileFlags = mCompileFlags | CompileFragment;
+			break;
 	}
 
 }
 
 
-void Shader::recompileDateCheck(std::string fileName, std::string fileExtension) {
+void Shader::recompileDateCheck(std::string fileName, ShaderType type) {
+	switch (type) {
+		case ShaderType::ShaderVertex:
+			if (mCompileFlags & CompileVertex) {
+				SpConsole::Write(SP_MESSAGE_INFO, fileName + ".vert has not been compiled before!");
+				return;
+			}
+			break; // end case Vertex
+		case ShaderType::ShaderFragment:
+			if (mCompileFlags & CompileFragment) {
+				SpConsole::Write(SP_MESSAGE_INFO, fileName + ".frag has not been compiled before!");
+				return;
+			}
+			break; // end case Fragment
+	}
+
 	std::string dataFolder = std::string(RENDERER_DATA_DIR "/shaders/") + fileName.c_str() + SHADER_EXTENSION_COMPILED;
 	fs::path compiledShaderPath = dataFolder;
 
@@ -80,10 +116,13 @@ void Shader::recompileDateCheck(std::string fileName, std::string fileExtension)
 	const auto fileTime = std::filesystem::last_write_time(shaderPath);
 
 	if (compiledFileTime > fileTime) {
-		if (fileExtension.compare(".vert")) {
-			mCompileFlags = mCompileFlags | CompileVertex;
-		}else if (fileExtension.compare(".frag")) {
-			mCompileFlags = mCompileFlags | CompileFragment;
+		switch (type) {
+			case ShaderType::ShaderVertex:
+				mCompileFlags = mCompileFlags | CompileVertex;
+				break;
+			case ShaderType::ShaderFragment:
+				mCompileFlags = mCompileFlags | CompileFragment;
+				break;
 		}
 	}
 }

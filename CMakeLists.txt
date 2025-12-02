@@ -11,6 +11,7 @@ include_directories(PUBLIC
         "./external/glm-master/glm"
         "./external/sdl3"
         "./external/Vulkan-SDK-1.4.328.1/x86_64/include"
+        "./external/shaderc/libshaderc"
 )
 
 #add_subdirectory("./external/sdl3"  EXCLUDE_FROM_ALL)
@@ -19,4 +20,3 @@ add_subdirectory(renderer)
 
 add_executable(Sparker_Engine main.cpp)
 target_link_libraries(Sparker_Engine PRIVATE SparkerRenderer)
-

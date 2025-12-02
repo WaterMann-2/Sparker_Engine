@@ -7,7 +7,8 @@ add_subdirectory(src)
 
 file(
         COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources"
-        DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/resources"
+        DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
+        NO_SOURCE_PERMISSIONS
 )
 
 file(
@@ -20,7 +21,7 @@ set(RENDERER_DATA_DIR "\"${CMAKE_CURRENT_BINARY_DIR}/data\"")
 
 configure_file(
         "SpRendererConfig.h.in"
-        "SpRendererConfig.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/SpRendererConfig.h"
         @ONLY
 )
 
@@ -48,6 +49,7 @@ target_include_directories(SparkerRenderer PRIVATE
         "./external/glm-master/glm"
         "./external/sdl3"
         "./external/Vulkan-SDK-1.4.328.1/x86_64/include"
+        "./external/shaderc/libshaderc"
         "./include/SpRenderer"
         "${CMAKE_CURRENT_BINARY_DIR}"
 )

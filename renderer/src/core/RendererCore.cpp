@@ -40,6 +40,7 @@ namespace SpRenderer {
 
     void RendererCore::endFrame() {
         endWindowFrame();
+        Utils::FileUtils::readTextFile(RENDERER_RESOURCE_DIR "/testText.txt");
     }
 
     void RendererCore::startWindow() {

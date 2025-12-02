@@ -5,5 +5,13 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/external/Vulkan-SDK-1.4.328.1/source/SPIRV-Headers" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/external/sdl3" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/shaderc" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/shaderc/third_party/abseil_cpp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/shaderc/third_party/effcee" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/shaderc/third_party/glslang" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/shaderc/third_party/googletest" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/shaderc/third_party/re2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/shaderc/third_party/spirv-headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/shaderc/third_party/spirv-tools" vcs="Git" />
   </component>
 </project>

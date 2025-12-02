@@ -6,6 +6,7 @@
 #define SPARKER_ENGINE_SHADER_H
 
 #include "Utils.h"
+#include "shaderc/shaderc.hpp"
 
 #define SHADER_EXTENSION_COMPILED ".comp"
 #define SHADER_EXTENSION_VERTEX ".vert.comp"
@@ -17,6 +18,13 @@ private:
 		CompileVertex = 0x00000001,
 		CompileFragment = 0x00000010
 	};
+
+	enum ShaderType {
+		ShaderVertex,
+		ShaderFragment
+	};
+
+	std::string shaderExtension(ShaderType type);
 public:
 	struct ShaderContext {
 		VkShaderModule vertexShaderModule;
@@ -42,8 +50,8 @@ private:
 
 	void compileShader(std::filesystem::path filePath);
 
-	void compiledCheck(std::string fileName, std::string fileExtension);
-	void recompileDateCheck(std::string fileName, std::string fileExtension);
+	void compiledCheck(std::string fileName, ShaderType type);
+	void recompileDateCheck(std::string fileName, ShaderType type);
 };
 
 
