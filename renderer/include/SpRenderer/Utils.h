@@ -83,7 +83,7 @@ namespace SpConsole {
 	void PlainWrite(const char* message);
 	void Write(MessageSeverity severity, std::string message);
 
-	void FatalExit(const char* message, ExitCode code);
+	void FatalExit(std::string message, ExitCode code);
 
 
 	void VulkanResult(VkResult result,
@@ -135,10 +135,10 @@ namespace Utils {
 		public:
 
 		static std::vector<char> readBinaryFile(std::filesystem::path filePath);
-		void writeBinaryFile(std::filesystem::path filePath, std::vector<char>& data);
+		static void writeBinaryFile(std::filesystem::path filePath, std::vector<char>& data);
 
 		static std::vector<char> readTextFile(std::filesystem::path filePath);
-		void writeTextFile(std::filesystem::path filePath, std::vector<char>& data);
+		static void writeTextFile(std::filesystem::path filePath, std::vector<char>& data);
 	private:
 
 	};

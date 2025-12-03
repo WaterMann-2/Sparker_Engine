@@ -25,6 +25,11 @@ namespace SpRenderer {
         createImageViews();
         createRenderpass();
         createGraphicsPipeline();
+
+
+        std::vector<char> fileData = Utils::FileUtils::readTextFile(RENDERER_RESOURCE_DIR "/testText.txt");
+        std::string fileString(fileData.begin(), fileData.end());
+        Utils::FileUtils::writeTextFile(RENDERER_DATA_DIR "/awesomeGuy.txt", fileData);
     }
 
     void RendererCore::stop() {
@@ -40,7 +45,6 @@ namespace SpRenderer {
 
     void RendererCore::endFrame() {
         endWindowFrame();
-        Utils::FileUtils::readTextFile(RENDERER_RESOURCE_DIR "/testText.txt");
     }
 
     void RendererCore::startWindow() {

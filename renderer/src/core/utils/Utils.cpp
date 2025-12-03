@@ -35,7 +35,7 @@ namespace SpConsole {
         }
     }
 
-    void FatalExit(const char* message, ExitCode code) {
+    void FatalExit(std::string message, ExitCode code) {
         Write(SP_MESSAGE_FATAL, message);
         exit(code);
     }
@@ -165,7 +165,7 @@ std::vector<char> Utils::FileUtils::readBinaryFile(std::filesystem::path filePat
         SpConsole::Write(SP_MESSAGE_INFO, "Opened File");
     }
 
-    size_t fileSize = file.tellg();
+    std::streamsize fileSize = file.tellg();
 
     std::vector<char> buffer(fileSize);
 
@@ -194,12 +194,8 @@ void Utils::FileUtils::writeBinaryFile(std::filesystem::path filePath, std::vect
         SpConsole::Write(SP_MESSAGE_INFO, "Opened File");
     }
 
-    file.write(static_cast<char*>(data.data()), sizeof(char) * data.size());
+    file.write(static_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(char) * data.size()));
     file.close();
-
-    if (!file.good()) {
-        SpConsole::FatalExit("Failed to write to file!", SP_FAILURE);
-    }
 }
 
 std::vector<char> Utils::FileUtils::readTextFile(std::filesystem::path filePath) {
@@ -219,16 +215,33 @@ std::vector<char> Utils::FileUtils::readTextFile(std::filesystem::path filePath)
         SpConsole::Write(SP_MESSAGE_INFO, "Opened File");
     }
 
-    size_t fileSize = file.tellg();
+    std::streamsize fileSize = file.tellg();
     std::vector<char> buffer(fileSize);
 
     file.seekg(0);
     file.read(buffer.data(), fileSize);
     file.close();
 
-    std::string testText(buffer.begin(), buffer.end());
+    return buffer;
+}
 
-    SpConsole::Write(SP_MESSAGE_INFO, "Read Text");
-    SpConsole::Write(SP_MESSAGE_INFO, testText);
-    SpConsole::FatalExit("Test End", SP_SUCCESS);
+void Utils::FileUtils::writeTextFile(std::filesystem::path filePath, std::vector<char>& data) {
+    std::ofstream file(filePath, std::ios::out);
+
+    if (!file.is_open()) {
+        SpConsole::Write(SP_MESSAGE_ERROR, "Failed to open file \"" + filePath.string() + "\"");
+
+        if (file.bad()) SpConsole::FatalExit("Badbit is set!", SP_FAILURE);
+        if (file.fail()) {
+            std::string message = strerror(errno);
+            SpConsole::FatalExit(message.c_str(), SP_FAILURE);
+        }
+
+        return;
+    }else {
+        SpConsole::Write(SP_MESSAGE_INFO, "Opened File");
+    }
+
+    file.write(static_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(char) * data.size()));
+    file.close();
 }

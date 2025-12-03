@@ -5,6 +5,7 @@
       <w>renderercore</w>
       <w>robsc</w>
       <w>shaderc</w>
+      <w>spirv</w>
       <w>swapchain</w>
     </words>
   </dictionary>

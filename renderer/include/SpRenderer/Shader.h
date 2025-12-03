@@ -9,8 +9,8 @@
 #include "shaderc/shaderc.hpp"
 
 #define SHADER_EXTENSION_COMPILED ".comp"
-#define SHADER_EXTENSION_VERTEX ".vert.comp"
-#define SHADER_EXTENSION_FRAGMENT ".frag.comp"
+#define SHADER_EXTENSION_COMPILED_VERTEX ".vert.comp"
+#define SHADER_EXTENSION_COMPILED_FRAGMENT ".frag.comp"
 
 class Shader {
 private:
@@ -20,8 +20,8 @@ private:
 	};
 
 	enum ShaderType {
-		ShaderVertex,
-		ShaderFragment
+		SHADER_VERTEX,
+		SHADER_FRAGMENT
 	};
 
 	std::string shaderExtension(ShaderType type);
@@ -48,10 +48,15 @@ private:
 
 	uint8 mCompileFlags = 0x00000000;
 
-	void compileShader(std::filesystem::path filePath);
+	std::vector<uint32> mVertSPIRV = {};
+	std::vector<uint32> mFragSPIRV = {};
+
+	std::vector<uint32> compileShader(std::filesystem::path filePath);
 
 	void compiledCheck(std::string fileName, ShaderType type);
 	void recompileDateCheck(std::string fileName, ShaderType type);
+	void writeToFile(std::string fileName, ShaderType type);
+	std::vector<uint32> readFromFile(std::string fileName, ShaderType type);
 };
 
 
